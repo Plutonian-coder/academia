@@ -25,7 +25,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex h-screen bg-[#f3f4f6] dark:bg-black"> {/* Main Canvas Background */}
+          <div className="flex h-screen bg-white dark:bg-black"> {/* Main Canvas Background */}
             <Sidebar />
             <main className="flex-1 overflow-y-auto relative">
               {/* Top Gradient/Accent Bar */}

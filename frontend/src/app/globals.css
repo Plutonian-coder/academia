@@ -3,78 +3,81 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    /* Main Background - Light Cool Grey for contrast with white cards */
-    --background: 210 20% 98%;
-    --foreground: 222.2 84% 4.9%;
-
-    /* Cards - Pure White */
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    /* Primary - Deep Emerald/Teal */
-    --primary: 166 85% 18%;
-    /* #065F46 */
-    --primary-foreground: 210 40% 98%;
-
-    /* Secondary - Light Emerald/Mint */
-    --secondary: 150 70% 90%;
-    --secondary-foreground: 166 85% 18%;
-
-    /* Muted - Greyish */
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    /* Accent - Gold/Amber for specific highlights */
-    --accent: 38 92% 50%;
-    /* #F59E0B */
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    /* Destructive - Red */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 166 85% 18%;
-
-    --radius: 0.75rem;
-    /* Slightly more rounded for modern look */
-  }
-
   .dark {
-    /* Dark Mode - Pure Black */
+    /* Dark Mode - Pure Black & Lime */
     --background: 0 0% 0%;
-    --foreground: 0 0% 98%;
+    /* #000000 */
+    --foreground: 0 0% 100%;
+    /* White text */
 
-    --card: 0 0% 5%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 2%;
+    /* Very subtle variation */
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 5%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 2%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 160 84% 39%;
-    /* Bright Emerald for dark mode */
+    --primary: 84 89% 63%;
+    /* #BFF549 Lime */
     --primary-foreground: 0 0% 0%;
+    /* Black text on lime */
 
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 218 11% 64%;
+    /* #99A1AF Link Color */
 
-    --accent: 38 92% 50%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 84 89% 63%;
+    /* #BFF549 */
+    --accent-foreground: 0 0% 0%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 100%;
 
     --border: 0 0% 15%;
     --input: 0 0% 15%;
-    --ring: 160 84% 39%;
+    --ring: 84 89% 63%;
+    /* Lime Ring */
+
+    --radius: 0px;
+  }
+}
+
+@layer base {
+  :root {
+    /* Light Mode - Sharp & Modern */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    --primary: 84 89% 45%;
+    /* Darker Lime for contrast on white */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 218 11% 40%;
+
+    --accent: 84 89% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 84 89% 45%;
+
+    --radius: 0px;
   }
 }
 

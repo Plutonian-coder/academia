@@ -39,6 +39,10 @@ export interface DashboardInsights {
     attendance_vs_score: AttendanceScore[];
     course_difficulty: { course_code: string; pass_rate: number; fail_rate: number }[];
     performance_quadrant: { x: number; y: number; student_id: string }[];
+    filters?: {
+        sessions: string[];
+        semesters: string[];
+    };
 }
 
 export interface Course {
@@ -89,8 +93,15 @@ export interface SearchResponse {
 /**
  * Fetch dashboard insights from the API
  */
-export async function getDashboardInsights(): Promise<DashboardInsights> {
-    const response = await fetch(`${API_BASE_URL}/api/dashboard/insights`);
+/**
+ * Fetch dashboard insights from the API
+ */
+export async function getDashboardInsights(session?: string, semester?: string): Promise<DashboardInsights> {
+    const params = new URLSearchParams();
+    if (session && session !== "All Sessions") params.append('session', session);
+    if (semester && semester !== "All Semesters") params.append('semester', semester);
+
+    const response = await fetch(`${API_BASE_URL}/api/dashboard/insights?${params.toString()}`);
     if (!response.ok) {
         throw new Error('Failed to fetch dashboard insights');
     }

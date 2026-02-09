@@ -33,7 +33,10 @@ This project is structured as a **Monorepo** containing a Next.js Frontend and a
    - **Framework Preset**: Next.js (Should auto-detect).
 4. **Environment Variables**:
    - Expand the "Environment Variables" section.
-   - Key: `NEXT_PUBLIC_API_URL`
+   - Key: `
+   
+   
+   `
    - Value: The Backend URL from Part 1 (e.g., `https://academia-backend.vercel.app`).
      - *Important*: Do not add a trailing slash `/`.
 5. Click **Deploy**.

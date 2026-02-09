@@ -108,7 +108,7 @@ $$
 
 ### 2.1 High-Level System Architecture
 
-The system follows a **Decoupled Monolith** architecture pattern, separating concerns between a stateless API backend and a client-side rendered frontend.
+The system follows a **Decoupled Monolith** architecture pattern, separating concerns between a stateless API backend and a client-side rendered frontend. The user interface leverages a modern, high-contrast "Terminal/Cyberpunk" aesthetic (Black #000000 & Lime #BFF549).
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -116,7 +116,7 @@ The system follows a **Decoupled Monolith** architecture pattern, separating con
 │  ┌─────────────────────────────────────────────────────────┐    │
 │  │  Next.js 16 (React 19)                                  │    │
 │  │  ├── Pages: Overview, Students, Analytics, Courses      │    │
-│  │  ├── Components: Charts (Tremor/Recharts), Cards        │    │
+│  │  ├── Components: Charts (Recharts), Shadcn UI           │    │
 │  │  └── State: React useState/useEffect                    │    │
 │  └─────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────┘
@@ -139,7 +139,7 @@ The system follows a **Decoupled Monolith** architecture pattern, separating con
 │                        DATA LAYER                               │
 │  ┌─────────────────────────────────────────────────────────┐    │
 │  │  CSV File: yabatech_expanded_data.csv                   │    │
-│  │  Records: 3,754 academic entries                        │    │
+│  │  Records: 460 unique students (~2,760 academic entries) │    │
 │  │  Loaded into: Pandas DataFrame (In-Memory)              │    │
 │  └─────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────┘
@@ -345,10 +345,10 @@ Returns aggregated analytics for the entire institution.
 ```json
 {
   "summary": {
-    "total_students": 1250,
+    "total_students": 460,
     "average_gpa": 2.87,
     "pass_rate": 78.5,
-    "at_risk_count": 125
+    "at_risk_count": 46
   },
   "geo_performance": [
     { "State_of_Origin": "Lagos", "avg_gpa": 3.12, "count": 450 }

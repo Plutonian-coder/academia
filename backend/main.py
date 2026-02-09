@@ -32,7 +32,7 @@ app.add_middleware(
 # Load CSV data on startup
 # Load CSV data on startup
 # Update path to look in current directory for deployment
-DATA_PATH = Path(__file__).parent / "yabatech_expanded_data.csv"
+DATA_PATH = Path(__file__).parent / "yabatechqwe_expanded_data.csv"
 
 def load_data() -> pd.DataFrame:
     """Load and cache the CSV data"""
@@ -53,17 +53,54 @@ def root():
 
 
 @app.get("/api/dashboard/insights")
-def get_dashboard_insights():
+def get_dashboard_insights(
+    session: Optional[str] = None,
+    semester: Optional[str] = None
+):
     """
-    Get aggregated dashboard insights for the Executive Overview.
+    Get aggregated dashboard insights with optional filtering.
     """
+    # Start with full dataset
+    filtered_df = df.copy()
+    
+    # Apply filters if provided
+    if session and session != "All Sessions":
+        filtered_df = filtered_df[filtered_df['Session'] == session]
+        
+    if semester and semester != "All Semesters":
+        filtered_df = filtered_df[filtered_df['Semester'] == semester]
+    
+    # Get available options for filters (from the full dataset to ensure all options are visible)
+    available_sessions = sorted(df['Session'].dropna().unique().tolist())
+    available_semesters = sorted(df['Semester'].dropna().unique().tolist())
+
+    # If filtered data is empty, return zeroed structure but with filter options
+    if filtered_df.empty:
+        return sanitize_for_json({
+            "summary": {
+                "total_students": 0,
+                "average_gpa": 0,
+                "pass_rate": 0,
+                "at_risk_count": 0
+            },
+            "geo_performance": [],
+            "grade_distribution": {},
+            "department_performance": [],
+            "attendance_vs_score": [],
+            "course_difficulty": [],
+            "performance_quadrant": [],
+            "filters": {
+                "sessions": available_sessions,
+                "semesters": available_semesters
+            }
+        })
     
     # Calculate unique students
-    unique_students = df.drop_duplicates(subset=['Student_ID'])
+    unique_students = filtered_df.drop_duplicates(subset=['Student_ID'])
     total_students = len(unique_students)
     
     # Calculate GPA per student
-    student_gpas = df.groupby('Student_ID').apply(
+    student_gpas = filtered_df.groupby('Student_ID').apply(
         lambda x: (x['GP'] * x['Credit_Unit']).sum() / x['Credit_Unit'].sum() 
         if x['Credit_Unit'].sum() > 0 else 0
     ).reset_index(name='GPA')
@@ -74,15 +111,16 @@ def get_dashboard_insights():
     passing_students = len(student_gpas[student_gpas['GPA'] >= 2.0])
     pass_rate = round((passing_students / total_students) * 100, 1) if total_students > 0 else 0
     
-    # At-risk
-    student_attendance = df.groupby('Student_ID')['Attendance_Rate'].mean().reset_index()
+    # At-risk (GPA < 1.5 or Attendance < 50%)
+    # Note: Attendance is averaged per student across their records in the filtered view
+    student_attendance = filtered_df.groupby('Student_ID')['Attendance_Rate'].mean().reset_index()
     student_metrics = student_gpas.merge(student_attendance, on='Student_ID')
     at_risk_count = len(student_metrics[
         (student_metrics['GPA'] < 1.5) | (student_metrics['Attendance_Rate'] < 50)
     ])
     
     # Geo Performance
-    state_gpa = df.groupby('State_of_Origin').apply(
+    state_gpa = filtered_df.groupby('State_of_Origin').apply(
         lambda x: round((x['GP'] * x['Credit_Unit']).sum() / x['Credit_Unit'].sum(), 2)
         if x['Credit_Unit'].sum() > 0 else 0
     ).reset_index(name='avg_gpa')
@@ -90,12 +128,12 @@ def get_dashboard_insights():
     geo_performance = state_gpa.to_dict('records')
     
     # Grade Distribution
-    grade_counts = df['Grade'].value_counts().to_dict()
+    grade_counts = filtered_df['Grade'].value_counts().to_dict()
     all_grades = ['A', 'AB', 'B', 'BC', 'C', 'CD', 'D', 'E', 'F']
     grade_distribution = {grade: grade_counts.get(grade, 0) for grade in all_grades}
     
     # Department Performance
-    dept_gpa = df.groupby('Department').apply(
+    dept_gpa = filtered_df.groupby('Department').apply(
         lambda x: round((x['GP'] * x['Credit_Unit']).sum() / x['Credit_Unit'].sum(), 2)
         if x['Credit_Unit'].sum() > 0 else 0
     ).reset_index(name='avg_gpa')
@@ -103,8 +141,8 @@ def get_dashboard_insights():
     department_performance = dept_gpa.to_dict('records')
     
     # Attendance vs Score (Correlation)
-    attendance_score = df.groupby(
-        pd.cut(df['Attendance_Rate'], bins=range(0, 110, 10))
+    attendance_score = filtered_df.groupby(
+        pd.cut(filtered_df['Attendance_Rate'], bins=range(0, 110, 10))
     ).agg({
         'Total_Score': 'mean',
         'Attendance_Rate': 'mean'
@@ -115,11 +153,10 @@ def get_dashboard_insights():
         for _, row in attendance_score.iterrows()
     ]
 
-    # --- DEEP ANALYTICS: MODULE 1 & 3 ---
+    # --- DEEP ANALYTICS ---
 
-    # 1. Course Difficulty Index (Pass/Fail Rate per Course)
-    # Group by Course Code and calculate pass rate (Score >= 40)
-    course_stats = df.groupby('Course_Code').apply(
+    # 1. Course Difficulty Index
+    course_stats = filtered_df.groupby('Course_Code').apply(
         lambda x: pd.Series({
             'pass_count': (x['Total_Score'] >= 40).sum(),
             'total_count': len(x)
@@ -128,16 +165,13 @@ def get_dashboard_insights():
     
     course_stats['pass_rate'] = round((course_stats['pass_count'] / course_stats['total_count']) * 100, 1)
     course_stats['fail_rate'] = round(100 - course_stats['pass_rate'], 1)
-    # Get top 5 hardest courses (lowest pass rate)
     hardest_courses = course_stats.sort_values('pass_rate').head(6) 
     course_difficulty = hardest_courses[['Course_Code', 'pass_rate', 'fail_rate']].rename(
         columns={'Course_Code': 'course_code'}
     ).to_dict('records')
 
-    # 3. Performance Quadrant (Scatter Plot Data)
-    # We need individual student data: Attendance vs Avg Score
-    # We already have student_metrics which has GPA and Attendance. Let's get Total Score Avg too.
-    student_avg_score = df.groupby('Student_ID')['Total_Score'].mean().reset_index(name='Avg_Score')
+    # 3. Performance Quadrant
+    student_avg_score = filtered_df.groupby('Student_ID')['Total_Score'].mean().reset_index(name='Avg_Score')
     quadrant_data = student_metrics.merge(student_avg_score, on='Student_ID')
     
     performance_quadrant = []
@@ -148,7 +182,7 @@ def get_dashboard_insights():
             "student_id": row['Student_ID']
         })
     
-    return {
+    return sanitize_for_json({
         "summary": {
             "total_students": total_students,
             "average_gpa": average_gpa,
@@ -160,8 +194,28 @@ def get_dashboard_insights():
         "department_performance": department_performance,
         "attendance_vs_score": attendance_vs_score,
         "course_difficulty": course_difficulty,
-        "performance_quadrant": performance_quadrant
-    }
+        "performance_quadrant": performance_quadrant,
+        "filters": {
+            "sessions": available_sessions,
+            "semesters": available_semesters
+        }
+    })
+
+
+def sanitize_for_json(obj):
+    """
+    Recursively replace NaN and Infinity with None for JSON compliance.
+    """
+    import math
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    elif isinstance(obj, dict):
+        return {k: sanitize_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_for_json(v) for v in obj]
+    return obj
 
 
 @app.get("/api/student/{student_id:path}")
@@ -228,7 +282,7 @@ def get_student_details(student_id: str):
     elif std_dev < 8:
         consistency_status = "Consistent"
     
-    return {
+    return sanitize_for_json({
         "student_id": student_id,
         "first_name": first_row['First_Name'],
         "last_name": first_row['Last_Name'],
@@ -247,7 +301,7 @@ def get_student_details(student_id: str):
         "courses": courses,
         "std_dev": round(std_dev, 2),
         "consistency_status": consistency_status
-    }
+    })
 
 
 @app.get("/api/students/search")
